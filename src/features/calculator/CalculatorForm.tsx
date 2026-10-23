@@ -6,7 +6,7 @@ import type { CalculationInput } from '../../domain/types'
 import { FeeFields } from './FeeFields'
 import { AllocationFields } from './AllocationFields'
 import { Field } from './Field'
-import type { CalculatorFormControls } from './useCalculatorForm'
+import type { CalculatorFormControls } from './hooks/useCalculatorForm'
 
 export function CalculatorForm({ form, onCalculate, hidden }: {
   form: CalculatorFormControls; onCalculate: (input: CalculationInput) => void; hidden: boolean

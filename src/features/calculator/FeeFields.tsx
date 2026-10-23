@@ -1,7 +1,7 @@
 import { useId } from 'react'
 import { useWatch } from 'react-hook-form'
 import { Field } from './Field'
-import type { CalculatorFormControls } from './useCalculatorForm'
+import type { CalculatorFormControls } from './hooks/useCalculatorForm'
 
 export function FeeFields({ prefix, form, currency }: {
   prefix: 'provider' | 'markup'; form: CalculatorFormControls; currency: string

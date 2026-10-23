@@ -4,7 +4,7 @@ import { calculateTransaction } from '../../domain/calculator'
 import type { CalculationInput, CalculationResult as Result } from '../../domain/types'
 import { CalculatorForm } from './CalculatorForm'
 import { CalculationResult } from './CalculationResult'
-import { useCalculatorForm } from './useCalculatorForm'
+import { useCalculatorForm } from './hooks/useCalculatorForm'
 
 export function Calculator() {
   const form = useCalculatorForm()

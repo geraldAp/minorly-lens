@@ -48,7 +48,7 @@ request or persistent form storage.
   pure domain calculator.
 - `form.ts`: declares raw string inputs and maps active fields into domain inputs
   or field-specific errors, using the existing parsers.
-- `useCalculatorForm.ts`: connects that parsing boundary to React Hook Form with a
+- `hooks/useCalculatorForm.ts`: connects that parsing boundary to React Hook Form with a
   typed resolver. It does not coerce strings into floating-point numbers.
 - `CalculatorForm`, `FeeFields`, `AllocationFields`, `Field` and
   `CalculationResult`: focused form and presentation components.

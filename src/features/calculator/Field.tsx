@@ -2,7 +2,7 @@ import { useId } from 'react'
 import type { InputHTMLAttributes } from 'react'
 import { MAX_AMOUNT_INPUT_LENGTH, MAX_PERCENTAGE_INPUT_LENGTH } from '../../domain/limits'
 import type { CalculatorFormValues } from './form'
-import type { CalculatorFormControls } from './useCalculatorForm'
+import type { CalculatorFormControls } from './hooks/useCalculatorForm'
 
 interface Props {
   name: keyof CalculatorFormValues

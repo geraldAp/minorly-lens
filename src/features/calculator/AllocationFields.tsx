@@ -3,7 +3,7 @@ import { useWatch } from "react-hook-form";
 import { MAX_PERCENTAGE_SCALED, PERCENTAGE_SCALE } from "../../domain/limits";
 import { parsePercentage } from "../../domain/percentage";
 import { Field } from "./Field";
-import type { CalculatorFormControls } from "./useCalculatorForm";
+import type { CalculatorFormControls } from "./hooks/useCalculatorForm";
 
 function sellerPercentage(buyer: string) {
   try {
