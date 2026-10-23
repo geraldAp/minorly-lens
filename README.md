@@ -12,8 +12,9 @@ sellers cover them. The interface currently remains the Vite starter.
 - Completed: added exact output formatting using Minorly's currency metadata and
   integer/string operations.
 - Completed: added provider-fee calculations with half-up rounding and bounds tests.
-- Next: add platform markup and tests. Allocation, UI and extension packaging
-  follow in separate steps.
+- Completed: added platform markup and combined-fee calculations with tests.
+- Next: add buyer/seller allocation, seller-funds validation and accounting tests.
+  UI and extension packaging follow in separate steps.
 
 ## Agreed calculation boundaries
 
@@ -31,6 +32,9 @@ sellers cover them. The interface currently remains the Vite starter.
 - Each percentage fee is rounded half up to the currency's minor unit before its
   fixed component is added. Seller fees exceeding the original amount are invalid;
   a seller net of zero is valid.
+- Half-up rounding is the prototype's fixed business rule. The calculator UI must
+  show: "Fee rounding: half up to the currency's smallest unit. A half-unit tie
+  rounds upward." Strategy selection can follow a suitable Minorly rounding API.
 - These are configurable estimates, not guaranteed provider quotes. Platform
   markup is revenue before other costs, not guaranteed profit.
 
@@ -69,7 +73,16 @@ the fixed component is added. Inputs and the calculated fee must respect the
 prototype bounds; rates range from 0% to 100%. Zero transaction amounts produce
 zero percentage fees, while configured fixed fees still apply. A fee can exceed
 the original amount at this stage; seller-funds validation belongs to the later
-allocation step. Platform markup and allocation are not implemented yet.
+allocation step.
+
+`calculateFees` in the same module calculates the provider fee and platform markup
+from the same original amount, then returns `providerFeeMinor`,
+`platformMarkupMinor` and `combinedFeesMinor`. Markup supports none, fixed,
+percentage, and percentage plus fixed. Each percentage fee is rounded separately
+before the fees are added, and their combined total must stay within the prototype
+limit. Markup is not applied to the amount remaining after provider fees. It is
+platform revenue before other costs, not guaranteed profit. Buyer/seller allocation
+is not implemented yet.
 
 Run the domain tests with `npm test`. Tests use
 [Vitest](https://vitest.dev/guide/) with one worker to keep local resource use low.

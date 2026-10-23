@@ -1,6 +1,6 @@
 import { MoneyError } from 'minorly'
 import { describe, expect, it } from 'vitest'
-import { calculateFee } from './fees'
+import { calculateFee, calculateFees } from './fees'
 
 describe('calculateFee', () => {
   it('returns a fixed fee in minor units', () => {
@@ -109,5 +109,117 @@ describe('calculateFee', () => {
   it('rejects an unsupported fee mode at runtime', () => {
     // @ts-expect-error Check untrusted runtime data despite the fee-rule type.
     expect(() => calculateFee(100n, { mode: 'none' })).toThrow(MoneyError)
+  })
+})
+
+describe('calculateFees', () => {
+  const providerRule = {
+    mode: 'percentage-plus-fixed',
+    percentageScaled: 20_000n,
+    amountMinor: 100n,
+  } as const
+
+  it('supports no platform markup', () => {
+    expect(calculateFees(10_000n, providerRule, { mode: 'none' })).toEqual({
+      providerFeeMinor: 300n,
+      platformMarkupMinor: 0n,
+      combinedFeesMinor: 300n,
+    })
+  })
+
+  it('adds a fixed platform markup', () => {
+    expect(calculateFees(10_000n, providerRule, {
+      mode: 'fixed', amountMinor: 100n,
+    })).toEqual({
+      providerFeeMinor: 300n,
+      platformMarkupMinor: 100n,
+      combinedFeesMinor: 400n,
+    })
+  })
+
+  it('calculates markup from the original amount before combining fees', () => {
+    expect(calculateFees(10_000n, providerRule, {
+      mode: 'percentage', percentageScaled: 10_000n,
+    })).toEqual({
+      providerFeeMinor: 300n,
+      platformMarkupMinor: 100n,
+      combinedFeesMinor: 400n,
+    })
+  })
+
+  it('supports percentage plus fixed platform markup', () => {
+    expect(calculateFees(10_000n, providerRule, {
+      mode: 'percentage-plus-fixed', percentageScaled: 10_000n, amountMinor: 50n,
+    })).toEqual({
+      providerFeeMinor: 300n,
+      platformMarkupMinor: 150n,
+      combinedFeesMinor: 450n,
+    })
+  })
+
+  it('rounds provider and markup percentage fees separately before adding them', () => {
+    // Each 50% fee on one minor unit rounds from half a unit to one unit.
+    expect(calculateFees(1n,
+      { mode: 'percentage', percentageScaled: 500_000n },
+      { mode: 'percentage', percentageScaled: 500_000n },
+    )).toEqual({ providerFeeMinor: 1n, platformMarkupMinor: 1n, combinedFeesMinor: 2n })
+  })
+
+  it('retains configured fixed fees for a zero transaction amount', () => {
+    expect(calculateFees(0n, providerRule, {
+      mode: 'percentage-plus-fixed', percentageScaled: 10_000n, amountMinor: 50n,
+    })).toEqual({ providerFeeMinor: 100n, platformMarkupMinor: 50n, combinedFeesMinor: 150n })
+  })
+
+  it('returns zero for percentage-only fees on a zero amount', () => {
+    expect(calculateFees(0n,
+      { mode: 'percentage', percentageScaled: 20_000n },
+      { mode: 'percentage', percentageScaled: 10_000n },
+    )).toEqual({ providerFeeMinor: 0n, platformMarkupMinor: 0n, combinedFeesMinor: 0n })
+  })
+
+  it('accepts combined fees exactly at the prototype limit', () => {
+    expect(calculateFees(0n,
+      { mode: 'fixed', amountMinor: 9_007_199_254_740_990n },
+      { mode: 'fixed', amountMinor: 1n },
+    )).toEqual({
+      providerFeeMinor: 9_007_199_254_740_990n,
+      platformMarkupMinor: 1n,
+      combinedFeesMinor: 9_007_199_254_740_991n,
+    })
+  })
+
+  it('rejects oversized combined fees when both components are within bounds', () => {
+    expect(() => calculateFees(0n,
+      { mode: 'fixed', amountMinor: 9_007_199_254_740_991n },
+      { mode: 'fixed', amountMinor: 1n },
+    )).toThrow(MoneyError)
+  })
+
+  it.each([-1n, 9_007_199_254_740_992n])('rejects invalid original amount %s with no markup', (amount) => {
+    expect(() => calculateFees(amount, providerRule, { mode: 'none' })).toThrow(MoneyError)
+  })
+
+  it.each([-1n, 9_007_199_254_740_992n])('rejects invalid fixed markup %s', (amount) => {
+    expect(() => calculateFees(10_000n, providerRule, {
+      mode: 'fixed', amountMinor: amount,
+    })).toThrow(MoneyError)
+  })
+
+  it.each([-1n, 1_000_001n])('rejects invalid markup percentage %s', (rate) => {
+    expect(() => calculateFees(10_000n, providerRule, {
+      mode: 'percentage', percentageScaled: rate,
+    })).toThrow(MoneyError)
+  })
+
+  it('validates the provider fee when markup is none', () => {
+    expect(() => calculateFees(100n,
+      { mode: 'fixed', amountMinor: -1n }, { mode: 'none' },
+    )).toThrow(MoneyError)
+  })
+
+  it('rejects an unsupported markup mode at runtime', () => {
+    // @ts-expect-error Check untrusted runtime data despite the markup-rule type.
+    expect(() => calculateFees(100n, providerRule, { mode: 'unknown' })).toThrow(MoneyError)
   })
 })
