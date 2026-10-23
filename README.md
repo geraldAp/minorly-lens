@@ -15,8 +15,10 @@ sellers cover them. The interface currently remains the Vite starter.
 - Completed: added platform markup and combined-fee calculations with tests.
 - Completed: added buyer/seller fee allocation with remainder and total-preservation tests.
 - Completed: shared half-up rounding between fee and allocation calculations.
-- Next: calculate buyer totals and seller receipts, validate seller funds and test
-  the full accounting invariant. UI and extension packaging follow separately.
+- Completed: composed the full calculator with payment totals, seller-funds
+  validation and accounting-invariant tests.
+- Next: build accessible calculator inputs and the result breakdown in small steps,
+  then package the Chrome extension.
 
 ## Agreed calculation boundaries
 
@@ -74,8 +76,8 @@ uses `bigint` minor units. The percentage component is rounded half up before
 the fixed component is added. Inputs and the calculated fee must respect the
 prototype bounds; rates range from 0% to 100%. Zero transaction amounts produce
 zero percentage fees, while configured fixed fees still apply. A fee can exceed
-the original amount at this stage; seller-funds validation belongs to the later
-allocation step.
+the original amount at this stage; seller-funds validation belongs to the composed
+transaction calculator.
 
 `calculateFees` in the same module calculates the provider fee and platform markup
 from the same original amount, then returns `providerFeeMinor`,
@@ -90,8 +92,8 @@ the seller, or a custom buyer percentage from 0% to 100%. The buyer's share roun
 half up; the seller's share is the exact remainder. The two non-negative shares
 always sum to the combined fees. For a one-minor-unit fee split 50/50, the buyer
 covers one unit and the seller covers zero. The helper validates combined fee and
-percentage bounds but does not yet calculate final payments or check seller funds;
-those belong to the next calculation step.
+percentage bounds. Final payments and seller-funds validation belong to the
+transaction calculator.
 
 `roundHalfUp` in `src/domain/rounding.ts` rounds a non-negative integer numerator
 divided by a positive integer denominator, using `bigint` throughout. Fee and
@@ -99,6 +101,22 @@ allocation calculations share this helper. Monetary bounds remain the callers'
 responsibility. A future suitable Minorly rounding API can replace the helper's
 implementation while preserving Lens's half-up business rule; the broader library
 work is tracked in [Minorly's rounding issue](https://github.com/geraldAp/minorly/issues/1).
+
+`calculateTransaction` in `src/domain/calculator.ts` composes the fee and allocation
+helpers into a complete `CalculationResult`. Buyer total is the original amount
+plus the buyer's fee share; seller net is the original amount minus the seller's
+fee share. A seller share above the original amount is rejected without clamping,
+while a seller receipt of zero is valid. Buyer totals above the prototype limit
+are rejected. The result preserves:
+
+```text
+buyer total = seller net + provider fee + platform markup
+```
+
+For GHS 100, a provider fee of 2% plus GHS 1, markup of 1%, and a 50/50 allocation,
+the buyer pays GHS 102 and the seller receives GHS 98. Domain tests cover the full
+flow from input strings to formatted results for both GHS and zero-decimal JPY.
+The calculator UI and extension packaging are not implemented yet.
 
 Run the domain tests with `npm test`. Tests use
 [Vitest](https://vitest.dev/guide/) with one worker to keep local resource use low.
