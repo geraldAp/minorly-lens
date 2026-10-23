@@ -1,6 +1,6 @@
 import { MoneyError, type SupportedCurrency } from 'minorly'
 import { describe, expect, it } from 'vitest'
-import { parseAmount } from './money'
+import { formatAmount, parseAmount } from './money'
 
 const twoDecimalCurrencies: SupportedCurrency[] = ['USD', 'EUR', 'GBP', 'GHS', 'NGN']
 
@@ -106,5 +106,55 @@ describe('parseAmount', () => {
   it.each(['CAD', 'toString'])('rejects unsupported runtime currency %s', (currency) => {
     // @ts-expect-error Check untrusted runtime data despite the currency type.
     expect(() => parseAmount('100', currency)).toThrow(MoneyError)
+  })
+})
+
+describe('formatAmount', () => {
+  it.each([
+    ['USD', '$100.25'],
+    ['EUR', '100,25\u00a0€'],
+    ['GBP', '£100.25'],
+    ['GHS', 'GH₵100.25'],
+    ['NGN', '₦100.25'],
+  ] as const)('formats minor units using the %s currency locale', (currency, expected) => {
+    expect(formatAmount(10_025n, currency)).toBe(expected)
+  })
+
+  it.each([
+    [0n, '$0.00'],
+    [1n, '$0.01'],
+    [10n, '$0.10'],
+    [150n, '$1.50'],
+    [10_000n, '$100.00'],
+    [100_025n, '$1,000.25'],
+  ] as const)('formats %s USD minor units as %s', (amountMinor, expected) => {
+    expect(formatAmount(amountMinor, 'USD')).toBe(expected)
+  })
+
+  it.each([
+    [0n, '￥0'],
+    [1n, '￥1'],
+    [100n, '￥100'],
+  ] as const)('formats %s JPY units without decimal places', (amountMinor, expected) => {
+    expect(formatAmount(amountMinor, 'JPY')).toBe(expected)
+  })
+
+  it('accepts the maximum safe minor-unit amount', () => {
+    expect(formatAmount(9_007_199_254_740_991n, 'JPY')).toBe('￥9,007,199,254,740,991')
+    expect(() => formatAmount(9_007_199_254_740_991n, 'USD')).not.toThrow()
+  })
+
+  it.each([-1n, -100n, 9_007_199_254_740_992n])('rejects out-of-bounds amount %s', (amountMinor) => {
+    expect(() => formatAmount(amountMinor, 'USD')).toThrow(MoneyError)
+  })
+
+  it.each(['CAD', 'toString'])('rejects unsupported runtime currency %s', (currency) => {
+    // @ts-expect-error Check untrusted runtime data despite the currency type.
+    expect(() => formatAmount(100n, currency)).toThrow(MoneyError)
+  })
+
+  // Remove the expected-failure flag when upgrading to the corrected formatter.
+  it('preserves the final cent at the safe-integer boundary (Minorly issue #7)', { fails: true }, () => {
+    expect(formatAmount(9_007_199_254_740_991n, 'USD')).toBe('$90,071,992,547,409.91')
   })
 })
