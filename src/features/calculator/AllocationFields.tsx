@@ -1,5 +1,6 @@
 import { useId } from "react";
 import { useWatch } from "react-hook-form";
+import { CALCULATION_MODES } from "../../domain/constants";
 import { MAX_PERCENTAGE_SCALED, PERCENTAGE_SCALE } from "../../domain/limits";
 import { parsePercentage } from "../../domain/percentage";
 import { Field } from "./Field";
@@ -35,9 +36,9 @@ export function AllocationFields({ form }: { form: CalculatorFormControls }) {
           aria-invalid={!!error}
           aria-describedby={error ? `${id}-error` : undefined}
         >
-          <option value="buyer-pays-all">Buyer pays all</option>
-          <option value="seller-pays-all">Seller pays all</option>
-          <option value="custom">Split between buyer and seller</option>
+          <option value={CALCULATION_MODES.allocation.BUYER_PAYS_ALL}>Buyer pays all</option>
+          <option value={CALCULATION_MODES.allocation.SELLER_PAYS_ALL}>Seller pays all</option>
+          <option value={CALCULATION_MODES.allocation.CUSTOM}>Split between buyer and seller</option>
         </select>
         {error && (
           <p className="field-error" id={`${id}-error`}>
@@ -45,7 +46,7 @@ export function AllocationFields({ form }: { form: CalculatorFormControls }) {
           </p>
         )}
       </div>
-      {mode === "custom" && (
+      {mode === CALCULATION_MODES.allocation.CUSTOM && (
         <div className="field-pair allocation-pair">
           <Field
             form={form}

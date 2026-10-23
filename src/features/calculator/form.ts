@@ -1,5 +1,6 @@
 import { CURRENCIES, MoneyError } from "minorly";
 import type { SupportedCurrency } from "minorly";
+import { CALCULATION_MODES, FEE_MODE_VALUES } from "../../domain/constants";
 import { parseAmount } from "../../domain/money";
 import { parsePercentage } from "../../domain/percentage";
 import type {
@@ -8,6 +9,8 @@ import type {
   FeeRule,
   PlatformMarkupRule,
 } from "../../domain/types";
+import { FEE_SOURCE } from "./constants";
+import type { FeeSource } from "./constants";
 
 export interface CalculatorFormValues {
   currency: string;
@@ -29,15 +32,15 @@ export const defaultValues: CalculatorFormValues = {
   currency: "GHS",
   originalAmount: "",
 
-  providerMode: "percentage-plus-fixed",
+  providerMode: CALCULATION_MODES.fee.PERCENTAGE_PLUS_FIXED,
   providerPercentage: "",
   providerFixed: "",
 
-  markupMode: "none",
+  markupMode: CALCULATION_MODES.markup.NONE,
   markupPercentage: "",
   markupFixed: "",
 
-  allocationMode: "buyer-pays-all",
+  allocationMode: CALCULATION_MODES.allocation.BUYER_PAYS_ALL,
   buyerPercentage: "50",
 };
 
@@ -77,48 +80,50 @@ export function parseCalculatorForm(values: CalculatorFormValues): ParsedForm {
   const originalAmountMinor = read("originalAmount", amount);
 
   // BUILD A PROVIDER OR MARKUP RULE USING ONLY THE SELECTED FEE TYPE'S FIELDS.
-  function fee(prefix: "provider" | "markup"): PlatformMarkupRule | undefined {
+  function fee(prefix: FeeSource): PlatformMarkupRule | undefined {
     const mode = values[`${prefix}Mode`];
 
-    if (mode === "none" && prefix === "markup") return { mode: "none" };
+    if (mode === CALCULATION_MODES.markup.NONE && prefix === FEE_SOURCE.MARKUP) {
+      return { mode: CALCULATION_MODES.markup.NONE };
+    }
 
-    if (!["fixed", "percentage", "percentage-plus-fixed"].includes(mode)) {
+    if (!FEE_MODE_VALUES.includes(mode)) {
       errors[`${prefix}Mode`] = "Choose a supported fee type.";
       return undefined;
     }
 
-    const fixed = mode === "percentage" ? 0n : read(`${prefix}Fixed`, amount);
+    const fixed = mode === CALCULATION_MODES.fee.PERCENTAGE ? 0n : read(`${prefix}Fixed`, amount);
     const percentage =
-      mode === "fixed" ? 0n : read(`${prefix}Percentage`, parsePercentage);
+      mode === CALCULATION_MODES.fee.FIXED ? 0n : read(`${prefix}Percentage`, parsePercentage);
 
     if (fixed === undefined || percentage === undefined) return undefined;
 
-    if (mode === "fixed") return { mode, amountMinor: fixed };
+    if (mode === CALCULATION_MODES.fee.FIXED) return { mode, amountMinor: fixed };
 
-    if (mode === "percentage") return { mode, percentageScaled: percentage };
+    if (mode === CALCULATION_MODES.fee.PERCENTAGE) return { mode, percentageScaled: percentage };
 
     return {
-      mode: "percentage-plus-fixed",
+      mode: CALCULATION_MODES.fee.PERCENTAGE_PLUS_FIXED,
       amountMinor: fixed,
       percentageScaled: percentage,
     };
   }
 
-  const providerFee = fee("provider");
-  const platformMarkup = fee("markup");
+  const providerFee = fee(FEE_SOURCE.PROVIDER);
+  const platformMarkup = fee(FEE_SOURCE.MARKUP);
 
   let allocation: FeeAllocation | undefined;
 
   switch (values.allocationMode) {
-    case "buyer-pays-all":
-    case "seller-pays-all":
+    case CALCULATION_MODES.allocation.BUYER_PAYS_ALL:
+    case CALCULATION_MODES.allocation.SELLER_PAYS_ALL:
       allocation = { mode: values.allocationMode };
       break;
 
-    case "custom": {
+    case CALCULATION_MODES.allocation.CUSTOM: {
       const buyerPercentageScaled = read("buyerPercentage", parsePercentage);
       if (buyerPercentageScaled !== undefined)
-        allocation = { mode: "custom", buyerPercentageScaled };
+        allocation = { mode: CALCULATION_MODES.allocation.CUSTOM, buyerPercentageScaled };
       break;
     }
 
@@ -130,7 +135,7 @@ export function parseCalculatorForm(values: CalculatorFormValues): ParsedForm {
     Object.keys(errors).length ||
     originalAmountMinor === undefined ||
     !providerFee ||
-    providerFee.mode === "none" ||
+    providerFee.mode === CALCULATION_MODES.markup.NONE ||
     !platformMarkup ||
     !allocation
   ) {

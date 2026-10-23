@@ -6,6 +6,7 @@ import type { CalculationInput } from '../../domain/types'
 import { FeeFields } from './FeeFields'
 import { AllocationFields } from './AllocationFields'
 import { Field } from './Field'
+import { FEE_SOURCE } from './constants'
 import type { CalculatorFormControls } from './hooks/useCalculatorForm'
 
 export function CalculatorForm({ form, onCalculate, hidden }: {
@@ -35,8 +36,8 @@ export function CalculatorForm({ form, onCalculate, hidden }: {
           </div>
         </div>
       </fieldset>
-      <FeeFields prefix="provider" form={form} currency={currency} />
-      <FeeFields prefix="markup" form={form} currency={currency} />
+      <FeeFields prefix={FEE_SOURCE.PROVIDER} form={form} currency={currency} />
+      <FeeFields prefix={FEE_SOURCE.MARKUP} form={form} currency={currency} />
       <AllocationFields form={form} />
       {calculationError && <p className="calculation-error" role="alert">{calculationError}</p>}
       <button id="calculate-estimate" className="primary-action" type="submit">Calculate estimate

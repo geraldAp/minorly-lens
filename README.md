@@ -50,6 +50,10 @@ request or persistent form storage.
   or field-specific errors, using the existing parsers.
 - `hooks/useCalculatorForm.ts`: connects that parsing boundary to React Hook Form with a
   typed resolver. It does not coerce strings into floating-point numbers.
+- `src/domain/constants.ts`: defines canonical fee, markup and allocation modes;
+  domain types and runtime validation reference the same values.
+- `src/features/calculator/constants.ts`: defines form fee sources and derives the
+  `FeeSource` type used by the form parser and fee inputs.
 - `CalculatorForm`, `FeeFields`, `AllocationFields`, `Field` and
   `CalculationResult`: focused form and presentation components.
 - `src/domain/`: remains independent of React and form-library code.
