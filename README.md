@@ -9,8 +9,10 @@ sellers cover them. The interface currently remains the Vite starter.
 - Completed: defined calculation types and money limits in `src/domain/`.
 - Completed: added exact amount parsing with currency precision and boundary tests.
 - Completed: added exact percentage parsing with precision, range and input tests.
-- Next: add exact output formatting. Fee calculations, UI and extension packaging
-  follow in separate steps.
+- Completed: added exact output formatting using Minorly's currency metadata and
+  integer/string operations.
+- Next: add provider-fee calculations and tests. Platform markup, allocation, UI
+  and extension packaging follow in separate steps.
 
 ## Agreed calculation boundaries
 
@@ -46,12 +48,20 @@ rounded. Surrounding whitespace is accepted but counts toward the eight-characte
 raw input limit. Negative values, commas, `%` symbols and malformed input are
 invalid. This function lives in Lens until Minorly provides a suitable public API.
 
-Exact output formatting and calculation functions have not been implemented yet.
-Minorly's formatter precision issue is
-tracked [upstream](https://github.com/geraldAp/minorly/issues/7). Lens will use exact
-formatting from integer minor units unless a suitable corrected API is available.
+`formatAmount` in `src/domain/money.ts` accepts `bigint` minor units, checks the
+prototype bounds, and uses Minorly's currency metadata to place the decimal point
+in the integer's string representation. Output uses a currency code and plain
+decimal text, such as `GHS 100.25` or `JPY 100`, with no thousands separators.
+Monetary values never pass through a floating-point `number` during formatting;
+the maximum supported USD amount displays exactly as `USD 90071992547409.91`.
 
-Run the amount and percentage parsing tests with `npm test`. Tests use
+Minorly remains responsible for amount conversion, currency metadata and
+`MoneyError`. Lens formats output locally while Minorly's
+[formatter precision fix](https://github.com/geraldAp/minorly/issues/7) is pending.
+Once a corrected release is available, we can verify it and consider adopting it
+behind the same `formatAmount` API. Fee calculations are not implemented yet.
+
+Run the amount parsing, formatting and percentage parsing tests with `npm test`. Tests use
 [Vitest](https://vitest.dev/guide/) with one worker to keep local resource use low.
 
 ## Development workflow
