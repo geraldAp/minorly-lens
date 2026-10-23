@@ -11,8 +11,9 @@ sellers cover them. The interface currently remains the Vite starter.
 - Completed: added exact percentage parsing with precision, range and input tests.
 - Completed: added exact output formatting using Minorly's currency metadata and
   integer/string operations.
-- Next: add provider-fee calculations and tests. Platform markup, allocation, UI
-  and extension packaging follow in separate steps.
+- Completed: added provider-fee calculations with half-up rounding and bounds tests.
+- Next: add platform markup and tests. Allocation, UI and extension packaging
+  follow in separate steps.
 
 ## Agreed calculation boundaries
 
@@ -59,9 +60,18 @@ Minorly remains responsible for amount conversion, currency metadata and
 `MoneyError`. Lens formats output locally while Minorly's
 [formatter precision fix](https://github.com/geraldAp/minorly/issues/7) is pending.
 Once a corrected release is available, we can verify it and consider adopting it
-behind the same `formatAmount` API. Fee calculations are not implemented yet.
+behind the same `formatAmount` API.
 
-Run the amount parsing, formatting and percentage parsing tests with `npm test`. Tests use
+`calculateFee` in `src/domain/fees.ts` applies a fixed, percentage, or percentage
+plus fixed provider-fee rule to the original transaction amount. All arithmetic
+uses `bigint` minor units. The percentage component is rounded half up before
+the fixed component is added. Inputs and the calculated fee must respect the
+prototype bounds; rates range from 0% to 100%. Zero transaction amounts produce
+zero percentage fees, while configured fixed fees still apply. A fee can exceed
+the original amount at this stage; seller-funds validation belongs to the later
+allocation step. Platform markup and allocation are not implemented yet.
+
+Run the domain tests with `npm test`. Tests use
 [Vitest](https://vitest.dev/guide/) with one worker to keep local resource use low.
 
 ## Development workflow
