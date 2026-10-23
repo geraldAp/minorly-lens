@@ -1,7 +1,8 @@
 # Minorly Lens
 
 A standalone Chrome extension for estimating transaction fees and how buyers and
-sellers cover them. The interface currently remains the Vite starter.
+sellers cover them. The calculator UI currently runs as a local Vite app; Chrome
+extension packaging is the next step.
 
 ## Progress
 
@@ -17,8 +18,52 @@ sellers cover them. The interface currently remains the Vite starter.
 - Completed: shared half-up rounding between fee and allocation calculations.
 - Completed: composed the full calculator with payment totals, seller-funds
   validation and accounting-invariant tests.
-- Next: build accessible calculator inputs and the result breakdown in small steps,
-  then package the Chrome extension.
+- Completed: built calculator inputs and an exact result breakdown with React Hook
+  Form, conditional fields, field errors and keyboard focus management.
+- Next: package and verify the unpacked Chrome extension.
+
+## Calculator UI
+
+Run `npm run dev` for the calculator. Enter an original amount and provider fee;
+optional markup starts at none and the buyer initially covers all fees. Zero is
+valid, but active fields must be filled explicitly. Choose a custom allocation to
+enter the buyer percentage; the seller percentage is calculated as the remainder.
+
+Calculate estimate opens a separate result screen with both final totals and all
+six breakdown rows. Edit inputs preserves the form values, clears the displayed
+result and returns focus to the amount. Invalid submissions stay on the form;
+field errors link to their controls, and cross-field calculation failures appear
+above the Calculate button. Inactive fee fields never block calculation.
+
+The compact layout uses rounded soft sections, underline fields, a filled primary
+action and a charcoal/lavender palette with a light appearance for systems that
+prefer it. Figtree is bundled locally under its SIL Open Font License; no runtime
+font request or additional permission is needed. There is no account, network
+request or persistent form storage.
+
+### Structure
+
+- `src/App.tsx`: composes the calculator feature.
+- `src/features/calculator/Calculator.tsx`: owns the input/result flow and calls the
+  pure domain calculator.
+- `form.ts`: declares raw string inputs and maps active fields into domain inputs
+  or field-specific errors, using the existing parsers.
+- `useCalculatorForm.ts`: connects that parsing boundary to React Hook Form with a
+  typed resolver. It does not coerce strings into floating-point numbers.
+- `CalculatorForm`, `FeeFields`, `AllocationFields`, `Field` and
+  `CalculationResult`: focused form and presentation components.
+- `src/domain/`: remains independent of React and form-library code.
+
+React Hook Form is the only added JavaScript dependency. No Zod schema, global
+store, routing layer or duplicate money-validation implementation is needed.
+
+Verification includes parser tests and browser checks for the GHS example, JPY
+precision, the exact maximum amount, half-up fees and allocation, conditional
+fields, seller-funds errors, focus transitions, linked labels/IDs, text/control contrast and reflow at
+320/420/1024 pixels in light and dark appearances. Assets load locally and the
+checked flows produce no browser runtime errors. These checks do not establish
+screen-reader interoperability or complete WCAG conformance; an actual VoiceOver
+pass and toolbar-popup sizing remain to be verified.
 
 ## Agreed calculation boundaries
 
@@ -116,9 +161,9 @@ buyer total = seller net + provider fee + platform markup
 For GHS 100, a provider fee of 2% plus GHS 1, markup of 1%, and a 50/50 allocation,
 the buyer pays GHS 102 and the seller receives GHS 98. Domain tests cover the full
 flow from input strings to formatted results for both GHS and zero-decimal JPY.
-The calculator UI and extension packaging are not implemented yet.
+The UI uses this same domain flow. Chrome extension packaging remains outstanding.
 
-Run the domain tests with `npm test`. Tests use
+Run the domain and form-parser tests with `npm test`. Tests use
 [Vitest](https://vitest.dev/guide/) with one worker to keep local resource use low.
 
 ## Development workflow
