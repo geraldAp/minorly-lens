@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Minorly Lens",
+  "version": "0.1.0",
+  "description": "Estimate provider fees, platform markup and how buyers and sellers cover them.",
+  "action": {
+    "default_title": "Minorly Lens — Fee calculator",
+    "default_popup": "index.html"
+  }
+}
