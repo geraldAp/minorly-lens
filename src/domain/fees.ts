@@ -1,6 +1,6 @@
 import { MoneyError } from 'minorly'
 import { MAX_AMOUNT_MINOR, MAX_PERCENTAGE_SCALED } from './limits'
-import type { FeeRule } from './types'
+import type { FeeRule, PlatformMarkupRule } from './types'
 
 export function calculateFee(originalAmountMinor: bigint, rule: FeeRule): bigint {
   if (originalAmountMinor < 0n || originalAmountMinor > MAX_AMOUNT_MINOR) {
@@ -34,4 +34,22 @@ export function calculateFee(originalAmountMinor: bigint, rule: FeeRule): bigint
   }
 
   return feeMinor
+}
+
+export function calculateFees(
+  originalAmountMinor: bigint,
+  providerRule: FeeRule,
+  markupRule: PlatformMarkupRule,
+) {
+  const providerFeeMinor = calculateFee(originalAmountMinor, providerRule)
+  const platformMarkupMinor = markupRule.mode === 'none'
+    ? 0n
+    : calculateFee(originalAmountMinor, markupRule)
+  const combinedFeesMinor = providerFeeMinor + platformMarkupMinor
+
+  if (combinedFeesMinor > MAX_AMOUNT_MINOR) {
+    throw new MoneyError('Combined fees exceed the prototype limit.')
+  }
+
+  return { providerFeeMinor, platformMarkupMinor, combinedFeesMinor }
 }
