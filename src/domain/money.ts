@@ -1,33 +1,21 @@
-import { CURRENCIES, MoneyError, toMinorUnit, type SupportedCurrency } from 'minorly'
+import { MoneyError, toMinorUnit, type SupportedCurrency } from 'minorly'
 import { MAX_AMOUNT_INPUT_LENGTH } from './limits'
 
 export function parseAmount(input: string, currency: SupportedCurrency): bigint {
-  if (input.length === 0) {
-    throw new MoneyError('Enter an amount.')
-  }
-
   if (input.length > MAX_AMOUNT_INPUT_LENGTH) {
     throw new MoneyError(`Amount must be at most ${MAX_AMOUNT_INPUT_LENGTH} characters.`)
   }
 
-  // Reject whitespace rather than letting Minorly trim it. This also rejects a
-  // trailing newline, which a regex ending in "$" alone could otherwise accept.
-  if (input !== input.trim() || !/^\d+(\.\d+)?$/.test(input)) {
-    throw new MoneyError('Enter a plain, non-negative decimal amount.')
+  // Minorly permits negative values and removes commas; Lens rejects both.
+  if (input.includes('-')) {
+    throw new MoneyError('Amount cannot be negative.')
   }
 
-  if (!Object.hasOwn(CURRENCIES, currency)) {
-    throw new MoneyError('Unsupported currency.')
+  if (input.includes(',')) {
+    throw new MoneyError('Use a dot as the decimal separator, without commas.')
   }
 
-  const { minorUnit } = CURRENCIES[currency]
-  const fractionalPart = input.split('.')[1] ?? ''
-
-  if (fractionalPart.length > minorUnit) {
-    throw new MoneyError(`${currency} supports at most ${minorUnit} decimal places.`)
-  }
-
-  // Minorly parses the decimal string exactly and rejects unsafe integers.
-  // Its safe-integer number result can then be converted to bigint exactly.
+  // Minorly trims surrounding whitespace and validates syntax, currency,
+  // decimal precision and safe-integer bounds before returning an exact integer.
   return BigInt(toMinorUnit(input, currency))
 }

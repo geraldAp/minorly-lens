@@ -30,11 +30,13 @@ sellers cover them. The interface currently remains the Vite starter.
 - These are configurable estimates, not guaranteed provider quotes. Platform
   markup is revenue before other costs, not guaranteed profit.
 
-`parseAmount` in `src/domain/money.ts` validates plain decimal strings before
-calling Minorly's conversion API and returns integer `bigint` minor units. It
-rejects negative values, whitespace, commas, currency symbols, exponent notation,
-excess precision and oversized inputs. Zero is valid. JPY accepts whole numbers
-only. Minorly enforces the safe-integer monetary boundary during conversion.
+`parseAmount` in `src/domain/money.ts` returns integer `bigint` minor units. Lens
+enforces the 32-character raw input limit and rejects negative values and commas.
+Minorly handles surrounding whitespace, validates decimal syntax and currency
+precision, and enforces the safe-integer monetary boundary during conversion.
+Surrounding whitespace is accepted; whitespace inside a number is invalid. Currency
+symbols and exponent notation are invalid. Zero is valid. JPY accepts whole numbers
+only.
 
 Percentage parsing, exact output formatting and calculation functions have not
 been implemented yet. Minorly's formatter precision issue is

@@ -28,19 +28,36 @@ describe('parseAmount', () => {
   })
 
   it.each([
+    [' 1', 100n],
+    ['1 ', 100n],
+    ['1\n', 100n],
+    ['1\r\n', 100n],
+    ['1\t', 100n],
+    [' \t100.25\r\n', 10_025n],
+    [' 0.00 ', 0n],
+  ] as const)('accepts surrounding whitespace in %j', (input, expected) => {
+    expect(parseAmount(input, 'GHS')).toBe(expected)
+  })
+
+  it('allows Minorly to trim a whole-yen amount', () => {
+    expect(parseAmount(' \t100\n', 'JPY')).toBe(100n)
+  })
+
+  it.each([
     '',
     ' ',
-    ' 1',
-    '1 ',
-    '1\n',
-    '1\r\n',
-    '1\t',
+    '\t\r\n',
     '1 0',
+    '1\n0',
     '-1',
     '-0',
+    ' -1 ',
+    '\t-0\n',
     '+1',
     '1,000.00',
     '1,00',
+    ' 1,000 ',
+    ' 1,00 ',
     'GHS 100',
     '$100',
     '.50',
@@ -59,7 +76,7 @@ describe('parseAmount', () => {
     expect(() => parseAmount('1.001', currency)).toThrow(MoneyError)
   })
 
-  it.each(['1.0', '1.5', '0.00'])('rejects fractional notation %s for JPY', (input) => {
+  it.each(['1.0', '1.5', '0.00', ' 1.0 '])('rejects fractional notation %s for JPY', (input) => {
     expect(() => parseAmount(input, 'JPY')).toThrow(MoneyError)
   })
 
@@ -79,6 +96,11 @@ describe('parseAmount', () => {
 
   it('rejects a 33-character input even when its value is within bounds', () => {
     expect(() => parseAmount('0'.repeat(32) + '1', 'GHS')).toThrow(MoneyError)
+  })
+
+  it('counts surrounding whitespace toward the raw input-length limit', () => {
+    expect(parseAmount(' '.repeat(31) + '1', 'GHS')).toBe(100n)
+    expect(() => parseAmount(' '.repeat(32) + '1', 'GHS')).toThrow(MoneyError)
   })
 
   it.each(['CAD', 'toString'])('rejects unsupported runtime currency %s', (currency) => {
