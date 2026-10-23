@@ -27,14 +27,14 @@ export const defaultValues: CalculatorFormValues = {
 export type FormErrors = Partial<Record<keyof CalculatorFormValues, string>>
 type ParsedForm = { ok: true; input: CalculationInput } | { ok: false; errors: FormErrors }
 
-// This boundary reads only active fields. All decimal inputs stay strings until
-// the existing money/percentage parsers produce exact bigint values.
+// CONVERT ACTIVE FORM FIELDS INTO CALCULATOR INPUTS OR RETURN FIELD ERRORS.
 export function parseCalculatorForm(values: CalculatorFormValues): ParsedForm {
   const errors: FormErrors = {}
   if (!Object.hasOwn(CURRENCIES, values.currency)) {
     return { ok: false, errors: { currency: 'Choose a supported currency.' } }
   }
   const currency = values.currency as SupportedCurrency
+  // PARSE ONE FIELD AND RECORD EXPECTED VALIDATION ERRORS AGAINST THAT FIELD.
   function read(field: keyof CalculatorFormValues, parse: (value: string) => bigint) {
     try {
       return parse(values[field])
@@ -44,8 +44,10 @@ export function parseCalculatorForm(values: CalculatorFormValues): ParsedForm {
       return undefined
     }
   }
+  // CONVERT AN AMOUNT STRING INTO EXACT MINOR UNITS FOR THE SELECTED CURRENCY.
   const amount = (value: string) => parseAmount(value, currency)
   const originalAmountMinor = read('originalAmount', amount)
+  // BUILD A PROVIDER OR MARKUP RULE USING ONLY THE SELECTED FEE TYPE'S FIELDS.
   function fee(prefix: 'provider' | 'markup'): PlatformMarkupRule | undefined {
     const mode = values[`${prefix}Mode`]
     if (mode === 'none' && prefix === 'markup') return { mode: 'none' }
