@@ -1,4 +1,5 @@
 import { MoneyError } from 'minorly'
+import { CALCULATION_MODES, FEE_MODE_VALUES } from './constants'
 import { MAX_AMOUNT_MINOR, MAX_PERCENTAGE_SCALED } from './limits'
 import { roundHalfUp } from './rounding'
 import type { FeeRule, PlatformMarkupRule } from './types'
@@ -8,12 +9,12 @@ export function calculateFee(originalAmountMinor: bigint, rule: FeeRule): bigint
     throw new MoneyError('Original amount is outside the supported range.')
   }
 
-  if (!['fixed', 'percentage', 'percentage-plus-fixed'].includes(rule.mode)) {
+  if (!FEE_MODE_VALUES.includes(rule.mode)) {
     throw new MoneyError('Unsupported fee mode.')
   }
 
-  const fixedFeeMinor = rule.mode === 'percentage' ? 0n : rule.amountMinor
-  const percentageScaled = rule.mode === 'fixed' ? 0n : rule.percentageScaled
+  const fixedFeeMinor = rule.mode === CALCULATION_MODES.fee.PERCENTAGE ? 0n : rule.amountMinor
+  const percentageScaled = rule.mode === CALCULATION_MODES.fee.FIXED ? 0n : rule.percentageScaled
 
   if (fixedFeeMinor < 0n || fixedFeeMinor > MAX_AMOUNT_MINOR) {
     throw new MoneyError('Fixed fee is outside the supported range.')
@@ -43,7 +44,7 @@ export function calculateFees(
   markupRule: PlatformMarkupRule,
 ) {
   const providerFeeMinor = calculateFee(originalAmountMinor, providerRule)
-  const platformMarkupMinor = markupRule.mode === 'none'
+  const platformMarkupMinor = markupRule.mode === CALCULATION_MODES.markup.NONE
     ? 0n
     : calculateFee(originalAmountMinor, markupRule)
   const combinedFeesMinor = providerFeeMinor + platformMarkupMinor

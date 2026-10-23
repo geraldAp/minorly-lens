@@ -1,4 +1,5 @@
 import { MoneyError } from 'minorly'
+import { CALCULATION_MODES } from './constants'
 import { MAX_AMOUNT_MINOR, MAX_PERCENTAGE_SCALED } from './limits'
 import { roundHalfUp } from './rounding'
 import type { FeeAllocation } from './types'
@@ -8,15 +9,15 @@ export function allocateFees(combinedFeesMinor: bigint, allocation: FeeAllocatio
     throw new MoneyError('Combined fees are outside the supported range.')
   }
 
-  if (allocation.mode === 'buyer-pays-all') {
+  if (allocation.mode === CALCULATION_MODES.allocation.BUYER_PAYS_ALL) {
     return { buyerFeeShareMinor: combinedFeesMinor, sellerFeeShareMinor: 0n }
   }
 
-  if (allocation.mode === 'seller-pays-all') {
+  if (allocation.mode === CALCULATION_MODES.allocation.SELLER_PAYS_ALL) {
     return { buyerFeeShareMinor: 0n, sellerFeeShareMinor: combinedFeesMinor }
   }
 
-  if (allocation.mode !== 'custom') {
+  if (allocation.mode !== CALCULATION_MODES.allocation.CUSTOM) {
     throw new MoneyError('Unsupported allocation mode.')
   }
 
