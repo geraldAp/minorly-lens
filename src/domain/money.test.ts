@@ -111,37 +111,37 @@ describe('parseAmount', () => {
 
 describe('formatAmount', () => {
   it.each([
-    ['USD', '$100.25'],
-    ['EUR', '100,25\u00a0€'],
-    ['GBP', '£100.25'],
-    ['GHS', 'GH₵100.25'],
-    ['NGN', '₦100.25'],
-  ] as const)('formats minor units using the %s currency locale', (currency, expected) => {
+    ['USD', 'USD 100.25'],
+    ['EUR', 'EUR 100.25'],
+    ['GBP', 'GBP 100.25'],
+    ['GHS', 'GHS 100.25'],
+    ['NGN', 'NGN 100.25'],
+  ] as const)('formats minor units using the %s currency code and precision', (currency, expected) => {
     expect(formatAmount(10_025n, currency)).toBe(expected)
   })
 
   it.each([
-    [0n, '$0.00'],
-    [1n, '$0.01'],
-    [10n, '$0.10'],
-    [150n, '$1.50'],
-    [10_000n, '$100.00'],
-    [100_025n, '$1,000.25'],
+    [0n, 'USD 0.00'],
+    [1n, 'USD 0.01'],
+    [10n, 'USD 0.10'],
+    [150n, 'USD 1.50'],
+    [10_000n, 'USD 100.00'],
+    [100_025n, 'USD 1000.25'],
   ] as const)('formats %s USD minor units as %s', (amountMinor, expected) => {
     expect(formatAmount(amountMinor, 'USD')).toBe(expected)
   })
 
   it.each([
-    [0n, '￥0'],
-    [1n, '￥1'],
-    [100n, '￥100'],
+    [0n, 'JPY 0'],
+    [1n, 'JPY 1'],
+    [100n, 'JPY 100'],
   ] as const)('formats %s JPY units without decimal places', (amountMinor, expected) => {
     expect(formatAmount(amountMinor, 'JPY')).toBe(expected)
   })
 
   it('accepts the maximum safe minor-unit amount', () => {
-    expect(formatAmount(9_007_199_254_740_991n, 'JPY')).toBe('￥9,007,199,254,740,991')
-    expect(() => formatAmount(9_007_199_254_740_991n, 'USD')).not.toThrow()
+    expect(formatAmount(9_007_199_254_740_991n, 'JPY')).toBe('JPY 9007199254740991')
+    expect(formatAmount(9_007_199_254_740_991n, 'USD')).toBe('USD 90071992547409.91')
   })
 
   it.each([-1n, -100n, 9_007_199_254_740_992n])('rejects out-of-bounds amount %s', (amountMinor) => {
@@ -153,8 +153,8 @@ describe('formatAmount', () => {
     expect(() => formatAmount(100n, currency)).toThrow(MoneyError)
   })
 
-  // Remove the expected-failure flag when upgrading to the corrected formatter.
-  it('preserves the final cent at the safe-integer boundary (Minorly issue #7)', { fails: true }, () => {
-    expect(formatAmount(9_007_199_254_740_991n, 'USD')).toBe('$90,071,992,547,409.91')
+  it('preserves the final cent when formatting and parsing the maximum amount', () => {
+    const amountMinor = parseAmount('90071992547409.91', 'USD')
+    expect(formatAmount(amountMinor, 'USD')).toBe('USD 90071992547409.91')
   })
 })

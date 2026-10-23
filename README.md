@@ -9,8 +9,8 @@ sellers cover them. The interface currently remains the Vite starter.
 - Completed: defined calculation types and money limits in `src/domain/`.
 - Completed: added exact amount parsing with currency precision and boundary tests.
 - Completed: added exact percentage parsing with precision, range and input tests.
-- Completed: added output formatting through Minorly 0.1.0, with a known precision
-  limitation for large amounts pending an upstream fix.
+- Completed: added exact output formatting using Minorly's currency metadata and
+  integer/string operations.
 - Next: add provider-fee calculations and tests. Platform markup, allocation, UI
   and extension packaging follow in separate steps.
 
@@ -49,20 +49,17 @@ raw input limit. Negative values, commas, `%` symbols and malformed input are
 invalid. This function lives in Lens until Minorly provides a suitable public API.
 
 `formatAmount` in `src/domain/money.ts` accepts `bigint` minor units, checks the
-prototype bounds, and passes an exact major-unit decimal string to Minorly's
-`formatToCurrency`. Minorly supplies the localized currency display. All monetary
-calculations stay in `bigint`; this function is a display boundary.
+prototype bounds, and uses Minorly's currency metadata to place the decimal point
+in the integer's string representation. Output uses a currency code and plain
+decimal text, such as `GHS 100.25` or `JPY 100`, with no thousands separators.
+Monetary values never pass through a floating-point `number` during formatting;
+the maximum supported USD amount displays exactly as `USD 90071992547409.91`.
 
-The current Minorly 0.1.0 formatter converts decimal strings to `number`
-internally, so large amounts can lose display precision: USD minor units
-`9_007_199_254_740_991n` currently display as `$90,071,992,547,409.90` instead of
-`$90,071,992,547,409.91`. This limitation is temporarily accepted while the
-[upstream fix](https://github.com/geraldAp/minorly/issues/7) is pending. A regression
-test records the correct result with Vitest's expected-failure flag. When the
-corrected Minorly release is available, update the dependency, remove that flag,
-and verify the result. No earlier conversion to a major-unit `number` is used, so
-the exact decimal text reaches the library. Fee calculations are not implemented
-yet.
+Minorly remains responsible for amount conversion, currency metadata and
+`MoneyError`. Lens formats output locally while Minorly's
+[formatter precision fix](https://github.com/geraldAp/minorly/issues/7) is pending.
+Once a corrected release is available, we can verify it and consider adopting it
+behind the same `formatAmount` API. Fee calculations are not implemented yet.
 
 Run the amount parsing, formatting and percentage parsing tests with `npm test`. Tests use
 [Vitest](https://vitest.dev/guide/) with one worker to keep local resource use low.

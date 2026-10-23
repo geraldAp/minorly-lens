@@ -1,4 +1,4 @@
-import { CURRENCIES, formatToCurrency, MoneyError, toMinorUnit, type SupportedCurrency } from 'minorly'
+import { CURRENCIES, MoneyError, toMinorUnit, type SupportedCurrency } from 'minorly'
 import { MAX_AMOUNT_INPUT_LENGTH, MAX_AMOUNT_MINOR } from './limits'
 
 export function parseAmount(input: string, currency: SupportedCurrency): bigint {
@@ -39,7 +39,5 @@ export function formatAmount(amountMinor: bigint, currency: SupportedCurrency): 
     ? digits
     : `${digits.slice(0, -minorUnit)}.${digits.slice(-minorUnit)}`
 
-  // Pass exact decimal text so a future Minorly string-formatting fix can apply.
-  // Minorly 0.1.0 still converts it to number internally (upstream issue #7).
-  return formatToCurrency(majorAmount, currency)
+  return `${currency} ${majorAmount}`
 }
