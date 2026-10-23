@@ -1,5 +1,6 @@
 import { MoneyError } from 'minorly'
 import { MAX_AMOUNT_MINOR, MAX_PERCENTAGE_SCALED } from './limits'
+import { roundHalfUp } from './rounding'
 import type { FeeAllocation } from './types'
 
 export function allocateFees(combinedFeesMinor: bigint, allocation: FeeAllocation) {
@@ -25,9 +26,10 @@ export function allocateFees(combinedFeesMinor: bigint, allocation: FeeAllocatio
     throw new MoneyError('Buyer percentage must be between 0 and 100.')
   }
 
-  const buyerFeeShareMinor = (
-    combinedFeesMinor * buyerPercentageScaled + MAX_PERCENTAGE_SCALED / 2n
-  ) / MAX_PERCENTAGE_SCALED
+  const buyerFeeShareMinor = roundHalfUp(
+    combinedFeesMinor * buyerPercentageScaled,
+    MAX_PERCENTAGE_SCALED,
+  )
 
   // Only the buyer's share is rounded; the seller gets the exact remainder.
   const sellerFeeShareMinor = combinedFeesMinor - buyerFeeShareMinor

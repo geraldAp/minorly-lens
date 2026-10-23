@@ -14,6 +14,7 @@ sellers cover them. The interface currently remains the Vite starter.
 - Completed: added provider-fee calculations with half-up rounding and bounds tests.
 - Completed: added platform markup and combined-fee calculations with tests.
 - Completed: added buyer/seller fee allocation with remainder and total-preservation tests.
+- Completed: shared half-up rounding between fee and allocation calculations.
 - Next: calculate buyer totals and seller receipts, validate seller funds and test
   the full accounting invariant. UI and extension packaging follow separately.
 
@@ -91,6 +92,13 @@ always sum to the combined fees. For a one-minor-unit fee split 50/50, the buyer
 covers one unit and the seller covers zero. The helper validates combined fee and
 percentage bounds but does not yet calculate final payments or check seller funds;
 those belong to the next calculation step.
+
+`roundHalfUp` in `src/domain/rounding.ts` rounds a non-negative integer numerator
+divided by a positive integer denominator, using `bigint` throughout. Fee and
+allocation calculations share this helper. Monetary bounds remain the callers'
+responsibility. A future suitable Minorly rounding API can replace the helper's
+implementation while preserving Lens's half-up business rule; the broader library
+work is tracked in [Minorly's rounding issue](https://github.com/geraldAp/minorly/issues/1).
 
 Run the domain tests with `npm test`. Tests use
 [Vitest](https://vitest.dev/guide/) with one worker to keep local resource use low.

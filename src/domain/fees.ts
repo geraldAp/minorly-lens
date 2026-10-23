@@ -1,5 +1,6 @@
 import { MoneyError } from 'minorly'
 import { MAX_AMOUNT_MINOR, MAX_PERCENTAGE_SCALED } from './limits'
+import { roundHalfUp } from './rounding'
 import type { FeeRule, PlatformMarkupRule } from './types'
 
 export function calculateFee(originalAmountMinor: bigint, rule: FeeRule): bigint {
@@ -22,10 +23,10 @@ export function calculateFee(originalAmountMinor: bigint, rule: FeeRule): bigint
     throw new MoneyError('Percentage must be between 0 and 100.')
   }
 
-  // For non-negative fees, adding half the denominator rounds ties upward.
-  const percentageFeeMinor = (
-    originalAmountMinor * percentageScaled + MAX_PERCENTAGE_SCALED / 2n
-  ) / MAX_PERCENTAGE_SCALED
+  const percentageFeeMinor = roundHalfUp(
+    originalAmountMinor * percentageScaled,
+    MAX_PERCENTAGE_SCALED,
+  )
 
   const feeMinor = percentageFeeMinor + fixedFeeMinor
 
