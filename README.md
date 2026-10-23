@@ -13,8 +13,9 @@ sellers cover them. The interface currently remains the Vite starter.
   integer/string operations.
 - Completed: added provider-fee calculations with half-up rounding and bounds tests.
 - Completed: added platform markup and combined-fee calculations with tests.
-- Next: add buyer/seller allocation, seller-funds validation and accounting tests.
-  UI and extension packaging follow in separate steps.
+- Completed: added buyer/seller fee allocation with remainder and total-preservation tests.
+- Next: calculate buyer totals and seller receipts, validate seller funds and test
+  the full accounting invariant. UI and extension packaging follow separately.
 
 ## Agreed calculation boundaries
 
@@ -81,8 +82,15 @@ from the same original amount, then returns `providerFeeMinor`,
 percentage, and percentage plus fixed. Each percentage fee is rounded separately
 before the fees are added, and their combined total must stay within the prototype
 limit. Markup is not applied to the amount remaining after provider fees. It is
-platform revenue before other costs, not guaranteed profit. Buyer/seller allocation
-is not implemented yet.
+platform revenue before other costs, not guaranteed profit.
+
+`allocateFees` in `src/domain/allocation.ts` assigns the combined fees to the buyer,
+the seller, or a custom buyer percentage from 0% to 100%. The buyer's share rounds
+half up; the seller's share is the exact remainder. The two non-negative shares
+always sum to the combined fees. For a one-minor-unit fee split 50/50, the buyer
+covers one unit and the seller covers zero. The helper validates combined fee and
+percentage bounds but does not yet calculate final payments or check seller funds;
+those belong to the next calculation step.
 
 Run the domain tests with `npm test`. Tests use
 [Vitest](https://vitest.dev/guide/) with one worker to keep local resource use low.
