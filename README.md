@@ -7,8 +7,9 @@ sellers cover them. The interface currently remains the Vite starter.
 
 - Completed: inspected the project and installed Minorly 0.1.0 APIs.
 - Completed: defined calculation types and money limits in `src/domain/`.
-- Next: add exact parsing and formatting. Fee calculations, UI and extension
-  packaging follow in separate steps.
+- Completed: added exact amount parsing with currency precision and boundary tests.
+- Next: add percentage parsing, then exact output formatting. Fee calculations,
+  UI and extension packaging follow in separate steps.
 
 ## Agreed calculation boundaries
 
@@ -29,10 +30,19 @@ sellers cover them. The interface currently remains the Vite starter.
 - These are configurable estimates, not guaranteed provider quotes. Platform
   markup is revenue before other costs, not guaranteed profit.
 
-The types and constants describe this contract; runtime validation and calculation
-functions have not been implemented yet. Minorly's formatter precision issue is
+`parseAmount` in `src/domain/money.ts` validates plain decimal strings before
+calling Minorly's conversion API and returns integer `bigint` minor units. It
+rejects negative values, whitespace, commas, currency symbols, exponent notation,
+excess precision and oversized inputs. Zero is valid. JPY accepts whole numbers
+only. Minorly enforces the safe-integer monetary boundary during conversion.
+
+Percentage parsing, exact output formatting and calculation functions have not
+been implemented yet. Minorly's formatter precision issue is
 tracked [upstream](https://github.com/geraldAp/minorly/issues/7). Lens will use exact
 formatting from integer minor units unless a suitable corrected API is available.
+
+Run the amount parsing tests with `npm test`. Tests use
+[Vitest](https://vitest.dev/guide/) with one worker to keep local resource use low.
 
 ## Development workflow
 

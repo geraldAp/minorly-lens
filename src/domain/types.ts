@@ -1,11 +1,11 @@
 import type { SupportedCurrency } from 'minorly'
 
 // Amounts are integer minor units in the calculation's currency.
-// Rates are scaled integers: 1% = 10,000n. Validation will enforce their limits.
+// Percentages are scaled integers: 1% = 10,000n. Validation will enforce their limits.
 export type FeeRule =
   | { mode: 'fixed'; amountMinor: bigint }
-  | { mode: 'percentage'; rateScaled: bigint }
-  | { mode: 'percentage-plus-fixed'; rateScaled: bigint; amountMinor: bigint }
+  | { mode: 'percentage'; percentageScaled: bigint }
+  | { mode: 'percentage-plus-fixed'; percentageScaled: bigint; amountMinor: bigint }
 
 export type PlatformMarkupRule = { mode: 'none' } | FeeRule
 
