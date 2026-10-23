@@ -1,8 +1,8 @@
 # Minorly Lens
 
 A standalone Chrome extension for estimating transaction fees and how buyers and
-sellers cover them. The calculator UI currently runs as a local Vite app; Chrome
-extension packaging is the next step.
+sellers cover them. Build the React calculator with Vite and load the resulting
+`dist` folder into Chrome as an unpacked Manifest V3 extension.
 
 ## Progress
 
@@ -20,7 +20,70 @@ extension packaging is the next step.
   validation and accounting-invariant tests.
 - Completed: built calculator inputs and an exact result breakdown with React Hook
   Form, conditional fields, field errors and keyboard focus management.
-- Next: package and verify the unpacked Chrome extension.
+- Completed: added Manifest V3 packaging, relative asset paths and a bounded,
+  scrollable toolbar popup.
+- Next: review the unpacked extension and record the short demo. Optional local
+  input restoration remains a separate step.
+
+## Load in Chrome
+
+From the repository root:
+
+```sh
+npm ci
+npm run build
+```
+
+1. Open `chrome://extensions` in Chrome.
+2. Enable **Developer mode**.
+3. Choose **Load unpacked** and select this project's **dist** folder. Select the
+   built folder, which contains `manifest.json`, rather than the source folder.
+4. Open Chrome's Extensions menu and pin **Minorly Lens** to the toolbar.
+5. Click Minorly Lens to open the calculator.
+
+The packaged extension runs locally without a Vite server. After source changes,
+run `npm run build`, click **Reload** on Minorly Lens in `chrome://extensions`,
+then reopen the toolbar popup. `npm run dev` and `npm run preview` remain useful
+for browser previews; they do not update the loaded extension's built files.
+
+`public/manifest.json` declares Manifest V3, the extension's name/version and
+`action.default_popup: "index.html"`. Vite copies it to the build root and uses
+`base: './'` for relative JavaScript, stylesheet and font paths. All executable
+code and fonts are bundled locally under Chrome's default extension content
+security policy. The manifest requests no permissions and declares no background
+worker, content scripts or host access. Chrome supplies a generic toolbar icon.
+
+The popup is 420 CSS pixels wide with a 600-pixel maximum root height and vertical
+scrolling for the form and results. Chrome may reduce its height to fit the
+available screen. Popup sizing applies only to `chrome-extension:` pages; the
+ordinary browser preview retains its responsive layout.
+Closing the popup resets its inputs; automatic restoration is not implemented.
+
+Verification loaded the built `dist` folder in an isolated Chrome profile and
+triggered its real toolbar action. The popup opened at 420px wide; Chrome limited
+its height to 498px on the test screen. Its JavaScript, CSS and Figtree font loaded
+from the extension package with no observed runtime or CSP errors. Popup checks
+covered the smoke cases below, both appearances, close/reopen reset and popup-page
+reload. This does not replace a VoiceOver pass or review in your everyday Chrome
+profile.
+
+### Popup smoke check
+
+- Enter GHS 100, provider fees of 2% plus GHS 1, markup of 1%, and a 50/50 split.
+  Confirm buyer pays GHS 102.00 and seller receives GHS 98.00.
+- Check field errors, a seller fee share above the original amount, JPY precision
+  and an exact maximum supported amount.
+- Tab through the inputs and use Enter to calculate. Confirm errors focus the
+  first invalid field, results receive focus, and Edit inputs returns to the form.
+- Scroll to the Calculate button, complete breakdown and rounding assumptions.
+  Confirm there is no horizontal overflow in either appearance.
+- Close and reopen the popup, then rebuild/reload it. Confirm a fresh form appears
+  and Chrome reports no extension errors.
+
+References: [Chrome's unpacked-extension guide](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world),
+[popup behavior](https://developer.chrome.com/docs/extensions/develop/ui/add-popup),
+[extension CSP](https://developer.chrome.com/docs/extensions/reference/manifest/content-security-policy)
+and [Vite relative asset paths](https://vite.dev/guide/build.html#relative-base).
 
 ## Calculator UI
 
@@ -67,7 +130,8 @@ fields, seller-funds errors, focus transitions, linked labels/IDs, text/control 
 320/420/1024 pixels in light and dark appearances. Assets load locally and the
 checked flows produce no browser runtime errors. These checks do not establish
 screen-reader interoperability or complete WCAG conformance; an actual VoiceOver
-pass and toolbar-popup sizing remain to be verified.
+pass remains to be verified. See the popup smoke check above for extension-specific
+verification.
 
 ## Agreed calculation boundaries
 
@@ -165,7 +229,7 @@ buyer total = seller net + provider fee + platform markup
 For GHS 100, a provider fee of 2% plus GHS 1, markup of 1%, and a 50/50 allocation,
 the buyer pays GHS 102 and the seller receives GHS 98. Domain tests cover the full
 flow from input strings to formatted results for both GHS and zero-decimal JPY.
-The UI uses this same domain flow. Chrome extension packaging remains outstanding.
+The toolbar popup uses this same domain flow.
 
 Run the domain and form-parser tests with `npm test`. Tests use
 [Vitest](https://vitest.dev/guide/) with one worker to keep local resource use low.

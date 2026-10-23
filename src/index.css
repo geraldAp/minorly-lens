@@ -43,7 +43,18 @@
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; }
+body { margin: 0; font: inherit; }
+
+/* Explicit width avoids Chrome's intrinsic popup sizing shrinking the form. */
+html.extension-popup {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.extension-popup body {
+  width: 420px;
+}
+
 button, input, select { font: inherit; }
 button, select { cursor: pointer; }
 button { -webkit-tap-highlight-color: transparent; }
