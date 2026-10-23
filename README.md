@@ -8,8 +8,9 @@ sellers cover them. The interface currently remains the Vite starter.
 - Completed: inspected the project and installed Minorly 0.1.0 APIs.
 - Completed: defined calculation types and money limits in `src/domain/`.
 - Completed: added exact amount parsing with currency precision and boundary tests.
-- Next: add percentage parsing, then exact output formatting. Fee calculations,
-  UI and extension packaging follow in separate steps.
+- Completed: added exact percentage parsing with precision, range and input tests.
+- Next: add exact output formatting. Fee calculations, UI and extension packaging
+  follow in separate steps.
 
 ## Agreed calculation boundaries
 
@@ -38,12 +39,19 @@ Surrounding whitespace is accepted; whitespace inside a number is invalid. Curre
 symbols and exponent notation are invalid. Zero is valid. JPY accepts whole numbers
 only.
 
-Percentage parsing, exact output formatting and calculation functions have not
-been implemented yet. Minorly's formatter precision issue is
+`parsePercentage` in `src/domain/percentage.ts` converts decimal strings directly
+into scaled `bigint` percentages: `"1.275"` becomes `12_750n`. It accepts 0% to 100%
+inclusive and at most four decimal places; excess precision is rejected, not
+rounded. Surrounding whitespace is accepted but counts toward the eight-character
+raw input limit. Negative values, commas, `%` symbols and malformed input are
+invalid. This function lives in Lens until Minorly provides a suitable public API.
+
+Exact output formatting and calculation functions have not been implemented yet.
+Minorly's formatter precision issue is
 tracked [upstream](https://github.com/geraldAp/minorly/issues/7). Lens will use exact
 formatting from integer minor units unless a suitable corrected API is available.
 
-Run the amount parsing tests with `npm test`. Tests use
+Run the amount and percentage parsing tests with `npm test`. Tests use
 [Vitest](https://vitest.dev/guide/) with one worker to keep local resource use low.
 
 ## Development workflow
