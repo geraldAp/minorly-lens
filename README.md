@@ -35,7 +35,7 @@ result and returns focus to the amount. Invalid submissions stay on the form;
 field errors link to their controls, and cross-field calculation failures appear
 above the Calculate button. Inactive fee fields never block calculation.
 
-The compact layout uses rounded soft sections, underline fields, a filled primary
+The compact layout uses rounded soft sections, borderless fields, a filled primary
 action and a charcoal/lavender palette with a light appearance for systems that
 prefer it. Figtree is bundled locally under its SIL Open Font License; no runtime
 font request or additional permission is needed. There is no account, network

@@ -31,8 +31,7 @@ h1 { margin-top: 4px; font-size: 26px; font-weight: 750; line-height: 1.2; lette
   min-height: 44px;
   padding: 8px 2px;
   border: 0;
-  border-bottom: 1px solid var(--control-line);
-  border-radius: 0;
+  border-radius: 6px;
   background: transparent;
   color: var(--ink);
 }
@@ -41,19 +40,20 @@ h1 { margin-top: 4px; font-size: 26px; font-weight: 750; line-height: 1.2; lette
 .field input::placeholder { color: var(--muted); opacity: 1; }
 .field :is(input, select):focus {
   outline: none;
-  border-bottom-color: var(--field-focus-color, var(--accent));
-  box-shadow: 0 1px 0 var(--field-focus-color, var(--accent));
+  box-shadow: none;
 }
-.field [aria-invalid='true'] { --field-focus-color: var(--error); border-bottom-color: var(--error); }
+.field :is(input, select):focus-visible {
+  outline: 2px solid var(--field-focus-color, var(--accent));
+  outline-offset: 2px;
+}
+.field [aria-invalid='true'] { --field-focus-color: var(--error); }
 .field-hint, .section-note { margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .field-error { margin-top: 8px; color: var(--error); font-size: 13px; overflow-wrap: anywhere; }
 .field-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-top: 12px; }
 .fee-values { margin-top: 12px; }
 .amount-section { background: var(--surface-alt); }
 .transaction-fields { display: grid; grid-template-columns: minmax(0, 1fr) 80px; gap: 16px; }
-.currency-field select { min-height: 58px; border-bottom: 0; border-radius: 6px; }
-.currency-field select:focus { box-shadow: none; }
-.currency-field select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.currency-field select { min-height: 58px; }
 .original-amount input { font-size: 34px; font-weight: 600; letter-spacing: -.8px; font-variant-numeric: tabular-nums; }
 .original-amount input:not(:placeholder-shown) { font-size: clamp(18px, 5.5vw, 32px); }
 .seller-remainder { display: flex; flex-direction: column; color: var(--muted); font-size: 14px; }
