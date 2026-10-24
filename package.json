@@ -1,11 +1,12 @@
 {
   "name": "minorly-lens",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "package:extension": "npm run build && node scripts/package-extension.mjs",
     "lint": "eslint .",
     "test": "vitest run --maxWorkers=1",
     "preview": "vite preview"
