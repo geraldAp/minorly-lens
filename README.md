@@ -22,6 +22,8 @@ sellers cover them. Build the React calculator with Vite and load the resulting
   Form, conditional fields, field errors and keyboard focus management.
 - Completed: added Manifest V3 packaging, relative asset paths and a bounded,
   scrollable toolbar popup.
+- Release preparation: added Lens icons, validated ZIP packaging, store-listing
+  copy and a privacy-policy draft. See [the release guide](docs/RELEASING.md).
 - Next: review the unpacked extension and record the short demo. Optional local
   input restoration remains a separate step.
 
@@ -51,7 +53,8 @@ for browser previews; they do not update the loaded extension's built files.
 `base: './'` for relative JavaScript, stylesheet and font paths. All executable
 code and fonts are bundled locally under Chrome's default extension content
 security policy. The manifest requests no permissions and declares no background
-worker, content scripts or host access. Chrome supplies a generic toolbar icon.
+worker, content scripts or host access. Packaged Lens PNG icons appear in the
+toolbar, extension management and store listing.
 
 The popup is 420 CSS pixels wide with a 600-pixel maximum root height and vertical
 scrolling for the form and results. Chrome may reduce its height to fit the
@@ -84,6 +87,19 @@ References: [Chrome's unpacked-extension guide](https://developer.chrome.com/doc
 [popup behavior](https://developer.chrome.com/docs/extensions/develop/ui/add-popup),
 [extension CSP](https://developer.chrome.com/docs/extensions/reference/manifest/content-security-policy)
 and [Vite relative asset paths](https://vite.dev/guide/build.html#relative-base).
+
+## Prepare a store release
+
+Run `npm run package:extension` to build and create
+`artifacts/minorly-lens-0.1.0.zip` plus its SHA-256 checksum. The ZIP contains the
+contents of `dist`, with `manifest.json` at the root; generated artifacts stay out
+of Git. Packaging needs the `zip` and `unzip` commands.
+
+See [local packaging and submission steps](docs/RELEASING.md),
+[store-listing copy](docs/STORE-LISTING.md) and [privacy policy](docs/PRIVACY.md).
+The policy's main-branch URL becomes available after this PR is merged. Capture
+the store screenshots and complete the account/listing/review steps before public
+distribution; preparing this package does not submit it to the Chrome Web Store.
 
 ## Calculator UI
 
